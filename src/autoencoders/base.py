@@ -44,6 +44,7 @@ class BaseAutoencoder:
         hidden_dim: int = 16,
         epochs: int = 300,
         lr: float = 1e-3,
+        optimizer: str = "Adam",
         weight_decay: float = 1e-4,
         seed: int = 0,
         device: str = "cpu",
@@ -53,6 +54,7 @@ class BaseAutoencoder:
         self.hidden_dim = hidden_dim
         self.epochs = epochs
         self.lr = lr
+        self.optimizer = optimizer
         self.weight_decay = weight_decay
         self.seed = seed
         self.device = torch.device(device)
@@ -68,10 +70,33 @@ class BaseAutoencoder:
         seed_everything(self.seed)
         self.model = self._build().to(self.device)
         self.model.train()
-        opt = torch.optim.Adam(
-            self.model.parameters(), lr=self.lr, weight_decay=self.weight_decay
-        )
+
+        if self.optimizer.lower() == "adam":
+            opt = torch.optim.Adam(
+                self.model.parameters(),
+                lr=self.lr,
+                weight_decay=self.weight_decay,
+            )
+
+        elif self.optimizer.lower() == "adamw":
+            opt = torch.optim.AdamW(
+                self.model.parameters(),
+                lr=self.lr,
+                weight_decay=self.weight_decay,
+            )
+
+        elif self.optimizer.lower() == "sgd":
+            opt = torch.optim.SGD(
+                self.model.parameters(),
+                lr=self.lr,
+                weight_decay=self.weight_decay,
+                momentum=0.9,
+            )
+
+        else:
+            raise ValueError(f"Unknown optimizer: {self.optimizer}")
         x = torch.as_tensor(X, dtype=torch.float32, device=self.device)
+
         for _ in range(self.epochs):
             opt.zero_grad()
             loss = self._loss(x)
