@@ -1,0 +1,20 @@
+{
+  "n_windows": 3815,
+  "n_factors": 5,
+  "median_adjacent_abs_corr": 0.9991895962251293,
+  "mean_adjacent_abs_corr": 0.9988161727588085,
+  "min_adjacent_abs_corr": 0.9818844320325442,
+  "sign_flip_rate_per_factor": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "permutation_event_rate": 0.0,
+  "verdict": "stable",
+  "gate_stable_threshold": 0.8,
+  "gate_fail_threshold": 0.5,
+  "anchor_agreement_rate": 1.0,
+  "median_decoder_cosine": 0.8888976171790673
+}

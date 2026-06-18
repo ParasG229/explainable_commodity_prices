@@ -27,6 +27,19 @@ class VanillaAutoencoder(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.decoder(self.encode(x))
 
+    def decoder_weight(self) -> np.ndarray:
+        """Decoder linear map W in x_hat = W f + b. Shape (n_assets, n_factors).
+
+        Because the decoder is a single linear layer, this is exactly the
+        Jacobian dx_i/df_k of the reconstruction w.r.t. the latent factors
+        (used by E0 anchor 2 and the E3 commodity fingerprint).
+        """
+        return self.decoder[0].weight.detach().cpu().numpy().astype(np.float64)
+
+    def decoder_bias(self) -> np.ndarray:
+        """Decoder bias b in x_hat = W f + b. Shape (n_assets,)."""
+        return self.decoder[0].bias.detach().cpu().numpy().astype(np.float64)
+
 
 @dataclass
 class AETrainConfig:
@@ -41,6 +54,7 @@ class AETrainConfig:
 def train_vanilla_autoencoder(
     window_returns: np.ndarray,
     config: AETrainConfig | None = None,
+    init_state: dict[str, torch.Tensor] | None = None,
 ) -> tuple[VanillaAutoencoder, np.ndarray]:
     """
     Train a vanilla AE on cross-sectional return vectors in the window.
@@ -49,6 +63,10 @@ def train_vanilla_autoencoder(
     ----------
     window_returns : ndarray, shape (M, N)
         Z-scored returns for the estimation window.
+    config : AETrainConfig, optional
+    init_state : dict, optional
+        Optional warm-start weights (previous window's ``state_dict``) to reduce
+        cross-window drift, per E0 step 3 of the directive.
 
     Returns
     -------
@@ -62,6 +80,8 @@ def train_vanilla_autoencoder(
     n_obs, n_assets = window_returns.shape
     device = torch.device("cpu")
     model = VanillaAutoencoder(n_assets, config.n_factors).to(device)
+    if init_state is not None:
+        model.load_state_dict(init_state)
     optimizer = torch.optim.Adam(model.parameters(), lr=config.learning_rate)
     criterion = nn.MSELoss()
 
