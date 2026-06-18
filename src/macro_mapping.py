@@ -134,18 +134,36 @@ def bai_ng_spanning_summary(factors: pd.DataFrame, macro: pd.DataFrame) -> dict:
 # --------------------------------------------------------------------------- #
 @dataclass
 class FactorDecomposition:
-    spanned: pd.DataFrame   # f_hat^M, date-indexed
-    residual: pd.DataFrame  # u = f - f_hat^M
-    intercepts: pd.Series   # per factor
-    coefficients: pd.DataFrame  # (macro x factor) theta
+    spanned: pd.DataFrame      # f_hat^M, date-indexed
+    residual: pd.DataFrame     # u = f - f_hat^M
+    intercepts: pd.Series      # per factor
+    coefficients: pd.DataFrame  # (macro x factor) theta on STANDARDIZED macro
+    macro_mean: pd.Series      # standardizer used to fit theta
+    macro_std: pd.Series
 
 
-def decompose_factors(factors: pd.DataFrame, macro: pd.DataFrame) -> FactorDecomposition:
-    """Split each factor into its macro-spanned part and orthogonal residual."""
+def decompose_factors(
+    factors: pd.DataFrame, macro: pd.DataFrame, ridge_alpha: float = 10.0
+) -> FactorDecomposition:
+    """Split each factor into its macro-spanned part and orthogonal residual.
+
+    The projection standardizes the macro regressors and applies ridge shrinkage
+    (intercept unpenalized). This is essential here: the macro panel is highly
+    collinear (FX block, IG/HY credit) and on wildly different scales, so a plain
+    OLS projection produces coefficient blow-up that is stable on the fit sample
+    but explodes when the map is extrapolated to in-window macro for the
+    incremental forecast. Ridge keeps the spanned reconstruction well-behaved.
+    """
     f, m = _align_xy(factors, macro)
-    X = np.column_stack([np.ones(len(m)), m.to_numpy()])
-    coef, _, _, _ = np.linalg.lstsq(X, f.to_numpy(), rcond=None)  # (1+J, K)
-    fitted = X @ coef
+    mu = m.mean()
+    sd = m.std(ddof=0).replace(0.0, 1.0)
+    Z = ((m - mu) / sd).to_numpy()
+    Zc = np.column_stack([np.ones(len(Z)), Z])            # (n, 1+J)
+    J = Z.shape[1]
+    A = Zc.T @ Zc + ridge_alpha * np.eye(J + 1)
+    A[0, 0] -= ridge_alpha                                 # do not penalize intercept
+    coef = np.linalg.solve(A, Zc.T @ f.to_numpy())         # (1+J, K)
+    fitted = Zc @ coef
     spanned = pd.DataFrame(fitted, index=f.index, columns=f.columns)
     residual = f - spanned
     return FactorDecomposition(
@@ -153,6 +171,8 @@ def decompose_factors(factors: pd.DataFrame, macro: pd.DataFrame) -> FactorDecom
         residual=residual,
         intercepts=pd.Series(coef[0], index=f.columns),
         coefficients=pd.DataFrame(coef[1:], index=m.columns, columns=f.columns),
+        macro_mean=mu,
+        macro_std=sd,
     )
 
 
@@ -188,7 +208,11 @@ def incremental_content(
 
     panel = panel or load_return_panel()
     decomposition = decompose_factors(factors_aligned, macro)
-    macro_on_panel = _macro_on_panel(panel, macro[decomposition.coefficients.index])
+    cols = list(decomposition.coefficients.index)
+    macro_on_panel = _macro_on_panel(panel, macro[cols])
+    # Standardize in-window macro with the SAME scaler used to fit theta.
+    z_on_panel = (macro_on_panel - decomposition.macro_mean[cols].to_numpy()) / \
+        decomposition.macro_std[cols].to_numpy()
     theta = decomposition.coefficients.to_numpy()
     intercept = decomposition.intercepts.to_numpy()
 
@@ -197,7 +221,7 @@ def incremental_content(
 
     def spanned_provider(w: int) -> np.ndarray:
         start, end = int(bundle.window_start_idx[w]), int(bundle.window_end_idx[w])
-        return intercept + macro_on_panel[start:end] @ theta
+        return intercept + z_on_panel[start:end] @ theta
 
     def residual_provider(w: int) -> np.ndarray:
         return aligned_provider(w) - spanned_provider(w)
@@ -222,7 +246,10 @@ def incremental_content(
     shapley = pd.DataFrame(shap_rows).T
     orig_value = rmse.loc["original", "rmse_ar1"] - rmse.loc["original", "rmse_model"]
     span_value = rmse.loc["spanned", "rmse_ar1"] - rmse.loc["spanned", "rmse_model"]
-    share = float(span_value / orig_value) if orig_value != 0 else float("nan")
+    # The share is only meaningful when the factors actually add forecast value.
+    # If the original RMSE improvement is ~0 or negative (factors do not help),
+    # the ratio is undefined -- report NaN rather than an exploding percentage.
+    share = float(span_value / orig_value) if orig_value > 1e-9 else float("nan")
     return IncrementalContentResult(rmse=rmse, shapley=shapley, spanned_share_of_value=share)
 
 

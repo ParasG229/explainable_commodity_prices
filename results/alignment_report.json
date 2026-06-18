@@ -1,9 +1,9 @@
 {
-  "n_windows": 3815,
+  "n_windows": 1610,
   "n_factors": 5,
-  "median_adjacent_abs_corr": 0.9991895962251293,
-  "mean_adjacent_abs_corr": 0.9988161727588085,
-  "min_adjacent_abs_corr": 0.9818844320325442,
+  "median_adjacent_abs_corr": 0.9984466386835142,
+  "mean_adjacent_abs_corr": 0.9953697909305252,
+  "min_adjacent_abs_corr": 0.8986987807991385,
   "sign_flip_rate_per_factor": [
     0.0,
     0.0,
@@ -16,5 +16,5 @@
   "gate_stable_threshold": 0.8,
   "gate_fail_threshold": 0.5,
   "anchor_agreement_rate": 1.0,
-  "median_decoder_cosine": 0.8888976171790673
+  "median_decoder_cosine": 0.9446065032183162
 }

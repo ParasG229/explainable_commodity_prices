@@ -1,10 +1,10 @@
 # E0: Cross-window factor alignment & stability audit
 
-- Windows: **3815**, factors K = **5**
+- Windows: **1610**, factors K = **5**
 - Reference window: 0
-- **Median adjacent |corr| (anchor 1): 0.999**
-- Mean / min adjacent |corr|: 0.999 / 0.982
-- Median decoder |cosine| (anchor 2): 0.889
+- **Median adjacent |corr| (anchor 1): 0.998**
+- Mean / min adjacent |corr|: 0.995 / 0.899
+- Median decoder |cosine| (anchor 2): 0.945
 - Anchor agreement rate: 1.000
 - Permutation-event rate: 0.000
 - Sign-flip rate per factor: f1=0.000, f2=0.000, f3=0.000, f4=0.000, f5=0.000

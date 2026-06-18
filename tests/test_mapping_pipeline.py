@@ -161,7 +161,8 @@ def test_linear_spanning_is_exact():
     for r in reg.values():
         assert r.r2 > 0.999
 
-    decomp = decompose_factors(factors, macro)
+    # Unregularized projection must reproduce an exactly-linear factor.
+    decomp = decompose_factors(factors, macro, ridge_alpha=0.0)
     assert np.abs(decomp.residual.to_numpy()).max() < 1e-6
 
     bn = bai_ng_spanning_summary(factors, macro)

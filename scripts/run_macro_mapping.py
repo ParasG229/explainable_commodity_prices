@@ -85,8 +85,12 @@ def main() -> None:
         inc = incremental_content(bundle, alignment, factors, macro, panel=panel)
         inc.rmse.to_csv(args.output_dir / "e1_incremental_rmse.csv")
         inc.shapley.to_csv(args.output_dir / "e1_incremental_shapley.csv")
-        print(f"  Incremental: macro-spanned part retains "
-              f"{inc.spanned_share_of_value:.1%} of original forecast value")
+        if inc.spanned_share_of_value != inc.spanned_share_of_value:  # NaN
+            print("  Incremental: original factors add ~no OOS forecast value "
+                  "(MSE not reduced vs AR(1)), so the macro-spanned share is undefined.")
+        else:
+            print(f"  Incremental: macro-spanned part retains "
+                  f"{inc.spanned_share_of_value:.1%} of original forecast value")
 
     # E2 nonlinear mapping
     nl = nonlinear_macro_mapping(factors, macro)

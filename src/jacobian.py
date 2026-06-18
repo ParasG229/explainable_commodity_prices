@@ -24,11 +24,16 @@ from src.factor_extraction import FactorBundle
 # Refined sector taxonomy for the 22-commodity universe. Distinguishes base vs
 # precious metals because the directive maps them to different macro factors.
 COMMODITY_SECTORS: dict[str, str] = {
-    "Brent": "Energy", "WTI": "Energy", "NaturalGas": "Energy",
-    "Gasoline": "Energy", "Diesel": "Energy",
-    "Gold": "PreciousMetals", "Silver": "PreciousMetals",
-    "Copper": "BaseMetals", "Aluminium": "BaseMetals",
-    "Nickel": "BaseMetals", "Zinc": "BaseMetals",
+    # Energy
+    "Brent": "Energy", "WTI": "Energy", "NaturalGas": "Energy", "Gasoline": "Energy",
+    "Diesel": "Energy", "HeatingOil": "Energy", "ThermalCoal": "Energy", "Methanol": "Energy",
+    # Precious metals
+    "Gold": "PreciousMetals", "Silver": "PreciousMetals", "Platinum": "PreciousMetals",
+    # Base / industrial metals
+    "Copper": "BaseMetals", "Aluminium": "BaseMetals", "Nickel": "BaseMetals",
+    "Zinc": "BaseMetals", "HRCSteel": "BaseMetals", "SGXIronOre": "BaseMetals",
+    "Lithium": "BaseMetals",
+    # Agriculture
     "Coffee": "Agriculture", "Corn": "Agriculture", "Cotton": "Agriculture",
     "LeanHogs": "Agriculture", "LiveCattle": "Agriculture", "Sugar": "Agriculture",
     "Soybeans": "Agriculture", "SoybeanMeal": "Agriculture", "SoybeanOil": "Agriculture",
