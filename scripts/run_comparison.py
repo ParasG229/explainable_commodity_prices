@@ -40,6 +40,13 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--factors", type=int, default=5, help="latent dimension K")
     p.add_argument("--epochs", type=int, default=300)
     p.add_argument("--seed", type=int, default=42)
+    p.add_argument(
+        "--optimizer",
+        type=str,
+        default="Adam",
+        choices=["Adam", "AdamW", "SGD"],
+        help="optimizer used for autoencoder training",
+    )
     p.add_argument("--archs", nargs="+", default=list(ARCH_BY_NAME),
                    choices=list(ARCH_BY_NAME), help="subset of architectures")
     p.add_argument("--skip-existing", action="store_true",
@@ -77,9 +84,13 @@ def main() -> None:
             continue
 
         cls = ARCH_BY_NAME[name]
-        factory = lambda seed, cls=cls: cls(  # noqa: E731
-            n_inputs=N, n_factors=args.factors, epochs=args.epochs, seed=seed
-        )
+        factory = lambda seed, cls=cls: cls(
+           n_inputs=N,
+           n_factors=args.factors,
+           epochs=args.epochs,
+           seed=seed,
+           optimizer=args.optimizer,
+)
         t0 = time.time()
 
         def progress(done: int, total: int) -> None:
