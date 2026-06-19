@@ -1,6 +1,6 @@
 factor,r2,dominant,hac_lags,n_obs
-f1,0.1314060045848443,"credit_hy_oas, cpi_yoy, credit_ig_oas",7,1610
-f2,0.10051742612963,"credit_hy_oas, credit_ig_oas, cpi_yoy",7,1610
-f3,0.15770134371941846,"credit_ig_oas, credit_hy_oas, usd_twi",7,1610
-f4,0.23074500787507823,"ust_10y, tips_10y, usd_twi",7,1610
-f5,0.21675131711933915,"ust_10y, tips_10y, ppi_yoy",7,1610
+f1,0.06144167433862191,"credit_hy_oas, ust_10y, vix",8,2618
+f2,0.06020021493625638,"credit_hy_oas, cpi_yoy, breakeven_10y",8,2618
+f3,0.08655811576075156,"credit_ig_oas, cpi_yoy, credit_hy_oas",8,2618
+f4,0.1759317804518422,"ust_10y, usd_twi, tips_10y",8,2618
+f5,0.20014163294326615,"ust_10y, tips_10y, ppi_yoy",8,2618
